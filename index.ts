@@ -1,6 +1,49 @@
 import * as crypto from "crypto";
 import express from "express";
 import cors from "cors";
+import bodyParser from "body-parser";
+
+// Wallet gives a user a public/private keypair
+class Wallet {
+  public publicKey: string;
+  public privateKey: string;
+
+  constructor(publicKey = "", privateKey = "") {
+    if (!publicKey && !privateKey) {
+      const keypair = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 512,
+        publicKeyEncoding: { type: "spki", format: "pem" },
+        privateKeyEncoding: { type: "pkcs8", format: "pem" },
+      });
+      this.privateKey = keypair.privateKey;
+      this.publicKey = keypair.publicKey;
+    } else {
+      this.publicKey = publicKey;
+      this.privateKey = privateKey;
+    }
+  }
+
+  sendMoney(amount: number, payeePublicKey: string) {
+    if (amount > Chain.instance.getBalance(this.publicKey)) {
+      console.log("\x1b[0m", "");
+      console.log("\x1b[31m", "💩 Transaktionabgelehnt:");
+      console.log("Menge überschreitet dein Guthaben");
+      console.log("\x1b[0m", "");
+      return false;
+    }
+    const transaction = new Transaction(amount, this.publicKey, payeePublicKey);
+
+    const sign = crypto.createSign("SHA256");
+    sign.update(transaction.toString()).end();
+
+    const signature = sign.sign(this.privateKey);
+    Chain.instance.addBlock(transaction, this.publicKey, signature);
+
+    console.log("\x1b[0m", "");
+    console.log("💸 CheeseCoin🧀 gesendet");
+    console.log("\x1b[0m", "");
+  }
+}
 
 // Transfer of funds between two wallets
 class Transaction {
@@ -47,8 +90,7 @@ class Chain {
   // Singleton instance
   public static instance = new Chain();
 
-  genesisWallet: string =
-    "-----BEGIN PUBLIC KEY----- MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOKhfNgutjusqZyTkqGuooUbW9Era82i 9sOciIeJ2dx/PUR4SrPisfLPRxKSKaTg8DIE5wYftkQtCKiqzOvVnxcCAwEAAQ== -----END PUBLIC KEY-----";
+  genesisWallet: Wallet = new Wallet();
 
   chain: Block[];
 
@@ -56,7 +98,10 @@ class Chain {
     console.log("\x1b[2J\x1b[0f");
     this.chain = [
       // Genesis block
-      new Block("", new Transaction(10000, "genesis", this.genesisWallet)),
+      new Block(
+        "",
+        new Transaction(1000000, "genesis", this.genesisWallet.publicKey)
+      ),
     ];
   }
 
@@ -100,63 +145,27 @@ class Chain {
   }
 
   getBalance(address: string) {
-    let balance = 0;
+    let balance: number = 0;
 
     for (const block of this.chain) {
       const transaction = block.data;
       if (transaction.payer === address) {
-        balance -= transaction.amount;
+        balance -= +transaction.amount;
       }
 
       if (transaction.payee === address) {
-        balance += transaction.amount;
+        balance += +transaction.amount;
       }
     }
 
     return balance;
   }
-}
 
-// Wallet gives a user a public/private keypair
-class Wallet {
-  public publicKey: string;
-  public privateKey: string;
-
-  constructor(publicKey = "", privateKey = "") {
-    if (!publicKey && !privateKey) {
-      const keypair = crypto.generateKeyPairSync("rsa", {
-        modulusLength: 512,
-        publicKeyEncoding: { type: "spki", format: "pem" },
-        privateKeyEncoding: { type: "pkcs8", format: "pem" },
-      });
-
-      this.privateKey = keypair.privateKey;
-      this.publicKey = keypair.publicKey;
-    } else {
-      this.publicKey = publicKey;
-      this.privateKey = privateKey;
-    }
-  }
-
-  sendMoney(amount: number, payeePublicKey: string) {
-    if (amount > Chain.instance.getBalance(this.publicKey)) {
-      console.log("\x1b[0m", "");
-      console.log("\x1b[31m", "💩 Transaktionabgelehnt:");
-      console.log("Menge überschreitet dein Guthaben");
-      console.log("\x1b[0m", "");
-      return false;
-    }
-    const transaction = new Transaction(amount, this.publicKey, payeePublicKey);
-
-    const sign = crypto.createSign("SHA256");
-    sign.update(transaction.toString()).end();
-
-    const signature = sign.sign(this.privateKey);
-    Chain.instance.addBlock(transaction, this.publicKey, signature);
-
+  printChain() {
     console.log("\x1b[0m", "");
-    console.log("💸 CheeseCoin🧀 gesendet");
+    console.log("\x1b[32m", "🔗 Chain");
     console.log("\x1b[0m", "");
+    console.log(this.chain);
   }
 }
 
@@ -164,6 +173,13 @@ class Wallet {
 
 const app = express();
 const port = 3000;
+const jsonParser = bodyParser.json();
+
+app.get("/chain", (req, res) => {
+  console.log("\x1b[2J\x1b[0f");
+  Chain.instance.printChain();
+  res.send(Chain.instance);
+});
 
 app.get("/new_wallet", (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -173,30 +189,37 @@ app.get("/new_wallet", (req, res) => {
   console.log("\x1b[32m%s\x1b[0m", "💰 Neue Wallet erstellt");
   console.log("\x1b[0m", "");
   console.log(wallet.publicKey);
-  console.log("Genesis: " + Chain.instance.getBalance(Chain.instance.genesisWallet));
+  Chain.instance.genesisWallet.sendMoney(100, wallet.publicKey);
   res.send(wallet);
 });
 
-app.get("/send", (req: any, res: any) => {
+app.post("/send", jsonParser, (req: any, res: any) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-  const wallet = new Wallet();
-  wallet.sendMoney(
-    32,
-    "-----BEGIN PUBLIC KEY----- MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOKhfNgutjusqZyTkqGuooUbW9Era82i 9sOciIeJ2dx/PUR4SrPisfLPRxKSKaTg8DIE5wYftkQtCKiqzOvVnxcCAwEAAQ== -----END PUBLIC KEY-----"
+  const wallet = new Wallet(
+    req.body.payer.publicKey,
+    req.body.payer.privateKey
   );
-  console.log("\x1b[0m", "");
-  console.log(Chain.instance);
-  console.log("\x1b[0m", "");
-  res.send(
-    `Es wurden ${req.query.amount} CheeseCoin🧀 an ${req.query.payeePublicKey} gesendet`
-  );
+  wallet.sendMoney(req.body.amount, req.body.payee);
+
+  res.send(`Es wurden ${req.body.amount} CheeseCoin🧀 an eine Wallet gesendet`);
+});
+
+app.get("/balance", jsonParser, (req: any, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
+
+  const keys = JSON.parse(req.headers.wallet);
+  const wallet = new Wallet(keys.publicKey, keys.privateKey);
+  const balance = Chain.instance.getBalance(wallet.publicKey);
+
+  res.send(balance.toString());
 });
 
 app.use(cors({ credentials: true, origin: true }));
 
 app.listen(port, () => {
   console.log(`#### CheeseCoin🧀 Blockchain online ####`);
+  console.log("\x1b[0m", "");
+  Chain.instance.printChain();
 });
-
-// http://localhost:3000/send?publicKey="-----BEGIN PUBLIC KEY----- MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOKhfNgutjusqZyTkqGuooUbW9Era82i 9sOciIeJ2dx/PUR4SrPisfLPRxKSKaTg8DIE5wYftkQtCKiqzOvVnxcCAwEAAQ== -----END PUBLIC KEY-----"&privateKey="-----BEGIN PRIVATE KEY----- MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEA4qF82C62O6ypnJOS oa6ihRtb0StrzaL2w5yIh4nZ3H89RHhKs+Kx8s9HEpIppODwMgTnBh+2RC0IqKrM 69WfFwIDAQABAkEAwAMeaXM6RtkFY3nM1FvHqosBgfkN/05BUH6BVoS/Jwa2jsni mSBL649xJR57Zkc/JyzBwRjDjsvQkQOAGRT7oQIhAPnPu4po3KGEgl3dbyygBRSi iZMDJrDYrNI7HdIHjJ8fAiEA6D6/MpAmEKvX/JP+bNGm82Kmbn6mfbVrIvVytrpm GQkCIEmqhoVUUuuWZdNEP0qLjbP+Ek+1+CziWGROZobPDxrFAiBpTxJ5hf2Mr69H e3/xrfsq/3+COPGbrOjAuFVk4A6tqQIhALHQ/htkS/55jVVOv/JTyhd2KH+0b5pr OhfYfWZDpFOW -----END PRIVATE KEY-----"&amount=10&payeePublicKey="-----BEGIN PUBLIC KEY----- MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOKhfNgutjusqZyTkqGuooUbW9Era82i 9sOciIeJ2dx/PUR4SrPisfLPRxKSKaTg8DIE5wYftkQtCKiqzOvVnxcCAwEAAQ== -----END PUBLIC KEY-----"
