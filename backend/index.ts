@@ -200,7 +200,7 @@ app.post("/send", jsonParser, (req: any, res: any) => {
       "💩 Transaktionabgelehnt: Menge muss größer als 0 sein"
     );
     console.log("\x1b[0m", "");
-    res.send();
+    res.send("");
     return;
   }
   res.header("Access-Control-Allow-Origin", "*");
