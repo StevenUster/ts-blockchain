@@ -42,6 +42,8 @@ class Wallet {
     console.log("\x1b[0m", "");
     console.log("💸 CheeseCoin🧀 gesendet");
     console.log("\x1b[0m", "");
+
+    Chain.instance.printChain();
   }
 }
 
@@ -51,11 +53,7 @@ class Transaction {
     public amount: number,
     public payer: string, // public key
     public payee: string // public key
-  ) {
-    console.log("\x1b[0m", "");
-    console.log(this);
-    console.log("\x1b[0m", "");
-  }
+  ) {}
 
   toString() {
     return JSON.stringify(this);
@@ -163,9 +161,12 @@ class Chain {
 
   printChain() {
     console.log("\x1b[0m", "");
+    console.log("\x1b[0m", "");
     console.log("\x1b[32m", "🔗 Chain");
     console.log("\x1b[0m", "");
     console.log(this.chain);
+    console.log("\x1b[0m", "");
+    console.log("\x1b[0m", "");
   }
 }
 
@@ -187,15 +188,21 @@ app.get("/new_wallet", (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
   const wallet = new Wallet();
-  console.log("\x1b[0m", "");
-  console.log("\x1b[32m%s\x1b[0m", "💰 Neue Wallet erstellt");
-  console.log("\x1b[0m", "");
-  console.log(wallet.publicKey);
   Chain.instance.genesisWallet.sendMoney(100, wallet.publicKey);
   res.send(wallet);
 });
 
 app.post("/send", jsonParser, (req: any, res: any) => {
+  if (req.body.amount < 0) {
+    console.log("\x1b[0m", "");
+    console.log(
+      "\x1b[31m",
+      "💩 Transaktionabgelehnt: Menge muss größer als 0 sein"
+    );
+    console.log("\x1b[0m", "");
+    res.send();
+    return;
+  }
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
   const wallet = new Wallet(
@@ -203,7 +210,6 @@ app.post("/send", jsonParser, (req: any, res: any) => {
     req.body.payer.privateKey
   );
   wallet.sendMoney(req.body.amount, req.body.payee);
-
   res.send(`Es wurden ${req.body.amount} CheeseCoin🧀 an eine Wallet gesendet`);
 });
 
