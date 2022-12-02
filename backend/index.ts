@@ -169,31 +169,13 @@ class Chain {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // -----------------------------------------------
 
 const app = express();
 const port = 3000;
 const jsonParser = bodyParser.json();
+
+app.use(cors({ credentials: true, origin: true }));
 
 app.get("/chain", (req, res) => {
   console.log("\x1b[2J\x1b[0f");
@@ -235,8 +217,6 @@ app.get("/balance", jsonParser, (req: any, res) => {
 
   res.send(balance.toString());
 });
-
-app.use(cors({ credentials: true, origin: true }));
 
 app.listen(port, () => {
   console.log(`#### CheeseCoin🧀 Blockchain online ####`);
