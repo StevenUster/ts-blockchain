@@ -26,7 +26,7 @@ class Wallet {
   sendMoney(amount: number, payeePublicKey: string) {
     if (amount > Chain.instance.getBalance(this.publicKey)) {
       console.log("\x1b[0m", "");
-      console.log("\x1b[31m", "💩 Transaktionabgelehnt:");
+      console.log("\x1b[31m", "💩  Transaktionabgelehnt:");
       console.log("Menge überschreitet dein Guthaben");
       console.log("\x1b[0m", "");
       return false;
@@ -40,7 +40,7 @@ class Wallet {
     Chain.instance.addBlock(transaction, this.publicKey, signature);
 
     console.log("\x1b[0m", "");
-    console.log("💸 CheeseCoin🧀 gesendet");
+    console.log("💸  CheeseCoin 🧀  gesendet");
     console.log("\x1b[0m", "");
 
     Chain.instance.printChain();
@@ -162,7 +162,7 @@ class Chain {
   printChain() {
     console.log("\x1b[0m", "");
     console.log("\x1b[0m", "");
-    console.log("\x1b[32m", "🔗 Chain");
+    console.log("\x1b[32m", "🔗  Chain");
     console.log("\x1b[0m", "");
     console.log(this.chain);
     console.log("\x1b[0m", "");
@@ -201,7 +201,7 @@ app.post("/send", jsonParser, (req: any, res: any) => {
     console.log("\x1b[0m", "");
     console.log(
       "\x1b[31m",
-      "💩 Transaktionabgelehnt: Menge muss größer als 0 sein"
+      "💩  Transaktionabgelehnt: Menge muss größer als 0 sein"
     );
     console.log("\x1b[0m", "");
     res.send("");
@@ -227,7 +227,7 @@ app.get("/balance", jsonParser, (req: any, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`#### CheeseCoin🧀 Blockchain online ####`);
+  console.log(`#### CheeseCoin  🧀  Blockchain online ####`);
   console.log("\x1b[0m", "");
   Chain.instance.printChain();
 });
