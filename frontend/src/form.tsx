@@ -14,7 +14,7 @@ export default function Form() {
 
   const handleForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const wallet = await axios.get("http://localhost:3000/new_wallet");
+    const wallet = await axios.get("http://167.235.235.198:3000/new_wallet");
     setWalletOne(wallet.data);
     setWalletOnePublicKey(wallet.data.publicKey);
 
@@ -23,7 +23,7 @@ export default function Form() {
 
   const handleFormTwo = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const wallet = await axios.get("http://localhost:3000/new_wallet");
+    const wallet = await axios.get("http://167.235.235.198:3000/new_wallet");
     setWalletTwo(wallet.data);
     setWalletTwoPublicKey(wallet.data.publicKey);
 
@@ -33,7 +33,7 @@ export default function Form() {
   const sendOne = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const values: any = e.target;
-    await fetch("http://localhost:3000/send", {
+    await fetch("http://167.235.235.198:3000/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +52,7 @@ export default function Form() {
   const sendTwo = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const values: any = e.target;
-    await fetch("http://localhost:3000/send", {
+    await fetch("http://167.235.235.198:3000/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -69,7 +69,7 @@ export default function Form() {
   };
 
   const getBalance = async (wallet: any) => {
-    const balance = await fetch("http://localhost:3000/balance", {
+    const balance = await fetch("http://167.235.235.198:3000/balance", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
