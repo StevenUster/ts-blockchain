@@ -179,9 +179,11 @@ const jsonParser = bodyParser.json();
 app.use(cors({ credentials: true, origin: true }));
 
 app.get("/chain", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
   console.log("\x1b[2J\x1b[0f");
   Chain.instance.printChain();
-  res.send(Chain.instance);
+  res.send('<pre>' + JSON.stringify(Chain.instance, null, 2) + '</pre>');
 });
 
 app.get("/new_wallet", (req, res) => {
@@ -193,6 +195,8 @@ app.get("/new_wallet", (req, res) => {
 });
 
 app.post("/send", jsonParser, (req: any, res: any) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
   if (req.body.amount < 0) {
     console.log("\x1b[0m", "");
     console.log(
@@ -203,8 +207,6 @@ app.post("/send", jsonParser, (req: any, res: any) => {
     res.send("");
     return;
   }
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
   const wallet = new Wallet(
     req.body.payer.publicKey,
     req.body.payer.privateKey
