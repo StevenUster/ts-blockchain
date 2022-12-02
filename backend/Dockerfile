@@ -17,3 +17,4 @@ CMD [ "npm", "start" ]
 
 # docker build -t blockchain-backend .
 # docker run -d --restart on-failure:5 -p 3000:3000 blockchain-backend
+# docker logs -f <container_id>
