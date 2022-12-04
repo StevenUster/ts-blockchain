@@ -21,9 +21,6 @@ class Wallet {
       this.publicKey = publicKey;
       this.privateKey = privateKey;
     }
-    console.log("\x1b[0m", "");
-    console.log("🔑  Neue Wallet erstellt");
-    console.log("\x1b[0m", "");
   }
 
   sendMoney(amount: number, payeePublicKey: string) {
@@ -216,6 +213,9 @@ app.get("/new_wallet", (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
   const wallet = new Wallet();
+  console.log("\x1b[0m", "");
+  console.log("🔑  Neue Wallet erstellt");
+  console.log("\x1b[0m", "");
   Chain.instance.genesisWallet.sendMoney(100, wallet.publicKey);
   res.send(wallet);
 });
