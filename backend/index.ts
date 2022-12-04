@@ -21,6 +21,9 @@ class Wallet {
       this.publicKey = publicKey;
       this.privateKey = privateKey;
     }
+    console.log("\x1b[0m", "");
+    console.log("🔑  Neue Wallet erstellt");
+    console.log("\x1b[0m", "");
   }
 
   sendMoney(amount: number, payeePublicKey: string) {
@@ -40,7 +43,7 @@ class Wallet {
     Chain.instance.addBlock(transaction, this.publicKey, signature);
 
     console.log("\x1b[0m", "");
-    console.log("💸  CheeseCoin 🧀  gesendet");
+    console.log(`💸  ${amount} CheeseCoin 🧀  gesendet`);
     console.log("\x1b[0m", "");
   }
 }
@@ -192,6 +195,9 @@ class Chain {
 
 
 
+
+
+
 // -----------------------------------------------
 
 const app = express();
@@ -203,7 +209,7 @@ app.use(cors({ credentials: true, origin: true }));
 app.get("/chain", (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-  res.send('<pre>' + JSON.stringify(Chain.instance, null, 2) + '</pre>');
+  res.send("<pre>" + JSON.stringify(Chain.instance, null, 2) + "</pre>");
 });
 
 app.get("/new_wallet", (req, res) => {
