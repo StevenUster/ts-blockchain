@@ -109,7 +109,7 @@ export default function Form() {
             </div>
           )}
 
-          <p>Wallet Coins: {balanceOne}</p>
+          <p>Wallet Coins: {balanceOne} 🧀</p>
 
           <h2 className="mt-12">Coins versenden</h2>
           <form
@@ -178,7 +178,7 @@ export default function Form() {
             </div>
           )}
 
-          <p>Coins: {balanceTwo}</p>
+          <p>Coins: {balanceTwo} 🧀</p>
 
           <h2 className="mt-12">Coins versenden</h2>
           <form
