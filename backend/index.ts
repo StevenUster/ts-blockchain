@@ -223,7 +223,7 @@ app.get("/new_wallet", (req, res) => {
 app.post("/send", jsonParser, (req: any, res: any) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-  if (req.body.amount < 0) {
+  if (req.body.amount <= 0) {
     console.log("\x1b[0m", "");
     console.log(
       "\x1b[31m",
